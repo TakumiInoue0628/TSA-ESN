@@ -1,6 +1,7 @@
 import numpy as np
 import tqdm
 import matplotlib.pylab as plt
+from matplotlib import gridspec
 from lib.functions import *
 
 
@@ -97,10 +98,11 @@ class EchoStateNetwork():
             ans.append(pred.reshape(-1).tolist())
             reservoir.append(self.x_n)
         self.reservoir_predict = np.array(reservoir)  
+        self.predict_ans = np.array(ans)
         if return_reservoir: 
-            return np.array(ans), np.array(reservoir)       
+            return self.predict_ans, self.reservoir_predict    
         else: 
-            return np.array(ans)
+            return self.predict_ans
 
     def freerun(self, in_layer_data0, pred_range=100, return_reservoir=False):
         self.freerun_length = pred_range
@@ -115,17 +117,133 @@ class EchoStateNetwork():
             reservoir.append(self.x_n)
             x = pred
         self.reservoir_freerun = np.array(reservoir)  
+        self.freerun_ans = np.array(ans)
         if return_reservoir: 
-            return np.array(ans), np.array(reservoir)       
+            return self.freerun_ans, self.reservoir_freerun       
         else: 
-            return np.array(ans)
+            return self.freerun_ans
     
     def computing_lyapunov_exponent(self, dt):
         W_dict = {"W_in": self.W_in, "W_res": self.W_res, "W_out": self.W_out}
-        return lyapunov_exponent(self.reservoir_freerun, W_dict, self.freerun_length, dt)
+        lyapunov_exponents, lyapunov_dim = lyapunov_exponent(self.reservoir_freerun, W_dict, self.freerun_length, dt)
+        self.lyapunov_exponents = lyapunov_exponents
+        self.lyapunov_dim = lyapunov_dim
+        return self.lyapunov_exponents, self.lyapunov_dim
     
 
 class Figure():
     def __init__(self, rcParams_dict):
         for key in rcParams_dict.keys():
             plt.rcParams[str(key)] = rcParams_dict[str(key)]
+
+    def plt_timeseries_of_data_and_model(
+                                        self,
+                                        data,
+                                        model,
+                                        t,
+                                        n_plot=None, 
+                                        save_filename=None,
+                                        params={'figsize':(20, 4),
+                                                'linestyle_data':'-',
+                                                'c_data':'k',
+                                                'lw_data':3,
+                                                'label_data':'Data',
+                                                'linestyle_model':'--',
+                                                'c_model':'r',
+                                                'lw_model':3,
+                                                'label_model':'Model',
+                                                'legend':True,
+                                                'legend_loc':'upper right',
+                                                'xlabel':'Time [s]',
+                                                'ylabel':r'$x(t)$'
+                                                }
+                                        ):
+        fig = plt.figure(figsize=params['figsize'])
+        ax = fig.add_subplot(111)
+        ax.plot(t[:n_plot], data[:n_plot], linestyle=params['linestyle_data'], c=params['c_data'], lw=params['lw_data'], label=params['label_data'])
+        ax.plot(t[:n_plot], model[:n_plot], linestyle=params['linestyle_model'], c=params['c_model'], lw=params['lw_model'], label=params['label_model'])
+        if params['legend']:
+            ax.legend(loc=params['legend_loc'])
+        ax.set_xlabel(params['xlabel'])
+        ax.set_ylabel(params['ylabel'])
+        if save_filename==None:
+            plt.show()
+        else:
+            plt.savefig(save_filename)
+        
+    def plt_attractor_of_data_and_model(
+                                    self,
+                                    data,
+                                    model,
+                                    n_plot=None, 
+                                    n_shift=10,
+                                    save_filename=None,
+                                    params={'figsize':(10, 4),
+                                            'title_data':'Data',
+                                            'linestyle_data':'-',
+                                            'c_data':'k',
+                                            'lw_data':2,
+                                            'title_model':'Model',
+                                            'linestyle_model':'-',
+                                            'c_model':'r',
+                                            'lw_model':2,
+                                            'xlabel':r'$x(t)$',
+                                            'ylabel':r'$x(t+\tau)$'
+                                            }
+                                    ):
+        fig = plt.figure(figsize=params['figsize'])
+        spec = gridspec.GridSpec(ncols=2, nrows=1,
+                         width_ratios=[1, 1],
+                         wspace=0.6
+                         )
+        ax1 = fig.add_subplot(spec[0])
+        ax1.set_title(params['title_data'], loc='center')
+        ax1.plot(data[:-n_shift][:n_plot], data[n_shift:][:n_plot], linestyle=params['linestyle_data'], c=params['c_data'], lw=params['lw_data'])
+        ax1.set_xlabel(params['xlabel'])
+        ax1.set_ylabel(params['ylabel'])
+        ax1.set_aspect('equal', 'datalim')
+        ax2 = fig.add_subplot(spec[1])
+        ax2.set_title(params['title_model'], loc='center')
+        ax2.plot(model[:-n_shift][:n_plot], model[n_shift:][:n_plot], linestyle=params['linestyle_model'], c=params['c_model'], lw=params['lw_model'])
+        ax2.set_xlabel(params['xlabel'])
+        ax2.set_ylabel(params['ylabel'])
+        ax2.set_xlim(ax1.get_xlim())
+        ax2.set_ylim(ax1.get_ylim())
+        ax2.set_aspect('equal', 'datalim')
+        if save_filename==None:
+            plt.show()
+        else:
+            plt.savefig(save_filename)
+
+    def plt_lyapunov_exponents(self,
+                               lyapunov_exponents, 
+                               n_dim=4,
+                               lyapunov_lim=(-120, 50), 
+                               save_filename=None,
+                               params={
+                                    'figsize':(8, 4),
+                                    'linestyle_0line':'dashed',
+                                    'c_0line':'b',
+                                    'lw_0line':3,
+                                    'linestyle_model':'-',
+                                    'marker_model':'o',
+                                    'markersize_model':10,
+                                    'c_model':'r',
+                                    'lw_model':3,
+                                    'xlabel':'Lyapunov exponents',
+                                    'ylabel':'Dimension'
+                               }
+                               ):
+        fig = plt.figure(figsize=params['figsize'])
+        ax = fig.add_subplot(111)
+        ax.axhline(y=0, xmin=0, xmax=n_dim+1, linestyle=params['linestyle_0line'], c=params['c_0line'], lw=params['lw_0line'])
+        ax.plot(np.arange(1, n_dim+1), lyapunov_exponents[:n_dim], linestyle=params['linestyle_model'], c=params['c_model'], 
+                lw=params['lw_model'], marker=params['marker_model'], markersize=params['markersize_model'])
+        ax.grid()
+        ax.set_ylim(lyapunov_lim)
+        ax.set_xlabel(params['xlabel'])
+        ax.set_ylabel(params['ylabel'])
+        if save_filename==None:
+            plt.show()
+        else:
+            plt.savefig(save_filename)
