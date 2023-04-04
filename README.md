@@ -16,5 +16,3 @@ T. Matsumoto, M. Kanaya, D. Matsushima, C. Han, and I. T. Tokuda, Synchronized a
 ## Data Preparation（Mic data）
 Rhythm Lab's students can get the preprocessed datasets from lab's NAS. Please download VF_FVF_DATASETS from the NAS, and save it in ```/data```. 
 
-## Acknowledgements
-The ESN section of the sample code used here was provided by Mr. Tomo Noguchi (graduated from the Ritsumeikan University Graduate School of Science and Engineering in the 2022), who also taught us the methods for parameter adjustment.
