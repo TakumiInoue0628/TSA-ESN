@@ -79,8 +79,10 @@ def bandpass_filter(data, t_data, passband_edge_freq, stopband_edge_freq, passba
                             )
     return data_filtered
 
-def rmse(y_true, y_pred):
-    score = []
-    for i in range(y_true.shape[0]):
-        score.append(mean_squared_error(y_true[i,:], y_pred[i,:], squared=False))
-    return np.array(score)
+def fft(data, t_data):
+    dt = t_data[1] - t_data[0]
+    f = np.fft.fft(data)
+    freq = np.fft.fftfreq(data.shape[0], dt)
+    amp = np.abs(f/(data.shape[0]/2))
+    plt_lim = int(data.shape[0]/2)
+    return freq[1:plt_lim], amp[1:plt_lim]

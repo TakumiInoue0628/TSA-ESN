@@ -177,6 +177,8 @@ class Figure():
                                     model,
                                     n_plot=None, 
                                     n_shift=10,
+                                    same_lim=True,
+                                    transpose_model=False,
                                     save_filename=None,
                                     params={'figsize':(10, 4),
                                             'title_data':'Data',
@@ -204,11 +206,15 @@ class Figure():
         ax1.set_aspect('equal', 'datalim')
         ax2 = fig.add_subplot(spec[1])
         ax2.set_title(params['title_model'], loc='center')
-        ax2.plot(model[:-n_shift][:n_plot], model[n_shift:][:n_plot], linestyle=params['linestyle_model'], c=params['c_model'], lw=params['lw_model'])
+        if transpose_model:
+            ax2.plot(model[n_shift:][:n_plot], model[:-n_shift][:n_plot], linestyle=params['linestyle_model'], c=params['c_model'], lw=params['lw_model'])
+        else:
+            ax2.plot(model[:-n_shift][:n_plot], model[n_shift:][:n_plot], linestyle=params['linestyle_model'], c=params['c_model'], lw=params['lw_model'])
         ax2.set_xlabel(params['xlabel'])
         ax2.set_ylabel(params['ylabel'])
-        ax2.set_xlim(ax1.get_xlim())
-        ax2.set_ylim(ax1.get_ylim())
+        if same_lim:
+            ax2.set_xlim(ax1.get_xlim())
+            ax2.set_ylim(ax1.get_ylim())
         ax2.set_aspect('equal', 'datalim')
         if save_filename==None:
             plt.show()
@@ -243,6 +249,66 @@ class Figure():
         ax.set_ylim(lyapunov_lim)
         ax.set_xlabel(params['xlabel'])
         ax.set_ylabel(params['ylabel'])
+        if save_filename==None:
+            plt.show()
+        else:
+            plt.savefig(save_filename)
+
+    def plt_2attractors_powerspectra_lyapunov(self, data, model, t, lyapunov_exponents, 
+                                              n_shift=10, n_initdel=2000, n_plt=None, same_lim=True, transpose_model=False,
+                                              freq_lim=(50, 300),
+                                              n_dim=4, lyapunov_lim=(-100, 70),
+                                              save_filename=None):
+        spec = gridspec.GridSpec(ncols=4, nrows=1, width_ratios=[4, 4, 7, 8], wspace=0.5)
+        fig = plt.figure(figsize=(30, 4))
+        freq_data, amp_data = fft(data, t)
+        freq_model, amp_model = fft(model, t)
+
+        ax0 = fig.add_subplot(spec[0])
+        ax0.set_title('Data', loc='center')
+        ax0.plot(data[n_initdel:][:-n_shift][:n_plt], data[n_initdel:][n_shift:][:n_plt], linestyle='-', c='k', lw=3)
+        ax0.set_xlabel(r'$x(t)$')
+        ax0.set_ylabel(r'$x(t+\tau)$')
+        ax0.get_xaxis().set_major_formatter(plt.FormatStrFormatter('%.1f'))
+        ax0.get_yaxis().set_major_formatter(plt.FormatStrFormatter('%.1f'))
+        ax0.set_aspect('equal', 'datalim')
+
+        ax1 = fig.add_subplot(spec[1])
+        ax1.set_title('Model', loc='center')
+        if transpose_model:
+            ax1.plot(model[n_initdel:][n_shift:][:n_plt], model[n_initdel:][:-n_shift][:n_plt], linestyle='-', c='r', lw=3)
+        else:
+            ax1.plot(model[n_initdel:][:-n_shift][:n_plt], model[n_initdel:][n_shift:][:n_plt], linestyle='-', c='r', lw=3)
+        if same_lim:
+            ax1.set_xlim(ax0.get_xlim())
+            ax1.set_ylim(ax0.get_ylim())
+        ax1.set_xlabel(r'$x(t)$')
+        ax1.set_ylabel(r'$x(t+\tau)$')
+        ax1.get_xaxis().set_major_formatter(plt.FormatStrFormatter('%.1f'))
+        ax1.get_yaxis().set_major_formatter(plt.FormatStrFormatter('%.1f'))
+        ax1.set_aspect('equal', 'datalim')
+
+        ax2 = fig.add_subplot(spec[2])
+        ax2.set_title('Power Spectra', loc='center')
+        ax2.plot(freq_data, amp_data, lw=4, c='k', label='Data')
+        ax2.plot(freq_model, amp_model, '--', lw=4, c='r', label='Model')
+        ax2.set_xlabel('Frequency [Hz]')
+        ax2.set_ylabel('Amplitude')
+        ax2.get_xaxis().set_major_formatter(plt.FormatStrFormatter('%d'))
+        ax2.get_yaxis().set_major_formatter(plt.FormatStrFormatter('%.1f'))
+        ax2.set_xlim(freq_lim)
+        ax2.legend()
+
+        ax3 = fig.add_subplot(spec[3])
+        ax3.set_title('Lyapunov Exponent', loc='center')
+        ax3.axhline(y=0, xmin=0, xmax=n_dim+1, linestyle='dashed', c='b', lw=3)
+        ax3.plot(np.arange(1, n_dim+1), lyapunov_exponents[:n_dim], linestyle='-', c='r', 
+                lw=3, marker='o', markersize=10)
+        ax3.grid()
+        ax3.set_ylim(lyapunov_lim)
+        ax3.set_xlabel('Dimension')
+        ax3.set_ylabel('Lyapunov exponents')
+
         if save_filename==None:
             plt.show()
         else:
