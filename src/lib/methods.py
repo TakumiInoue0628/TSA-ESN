@@ -166,6 +166,7 @@ class Figure():
             ax.legend(loc=params['legend_loc'])
         ax.set_xlabel(params['xlabel'])
         ax.set_ylabel(params['ylabel'])
+        plt.tight_layout()
         if save_filename==None:
             plt.show()
         else:
@@ -216,6 +217,7 @@ class Figure():
             ax2.set_xlim(ax1.get_xlim())
             ax2.set_ylim(ax1.get_ylim())
         ax2.set_aspect('equal', 'datalim')
+        plt.tight_layout()
         if save_filename==None:
             plt.show()
         else:
@@ -249,6 +251,7 @@ class Figure():
         ax.set_ylim(lyapunov_lim)
         ax.set_xlabel(params['xlabel'])
         ax.set_ylabel(params['ylabel'])
+        plt.tight_layout()
         if save_filename==None:
             plt.show()
         else:
@@ -309,6 +312,7 @@ class Figure():
         ax3.set_xlabel('Dimension')
         ax3.set_ylabel('Lyapunov exponents')
 
+        plt.tight_layout()
         if save_filename==None:
             plt.show()
         else:
