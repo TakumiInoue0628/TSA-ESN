@@ -316,4 +316,4 @@ class Figure():
         if save_filename==None:
             plt.show()
         else:
-            plt.savefig(save_filename)
+            plt.savefig(save_filename, bbox_inches="tight")
