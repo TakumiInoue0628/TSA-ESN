@@ -170,7 +170,7 @@ class Figure():
         if save_filename==None:
             plt.show()
         else:
-            plt.savefig(save_filename)
+            plt.savefig(save_filename, bbox_inches="tight")
         
     def plt_attractor_of_data_and_model(
                                     self,
@@ -221,7 +221,7 @@ class Figure():
         if save_filename==None:
             plt.show()
         else:
-            plt.savefig(save_filename)
+            plt.savefig(save_filename, bbox_inches="tight")
 
     def plt_lyapunov_exponents(self,
                                lyapunov_exponents, 
@@ -255,7 +255,7 @@ class Figure():
         if save_filename==None:
             plt.show()
         else:
-            plt.savefig(save_filename)
+            plt.savefig(save_filename, bbox_inches="tight")
 
     def plt_2attractors_powerspectra_lyapunov(self, data, model, t, lyapunov_exponents, 
                                               n_shift=10, n_initdel=2000, n_plt=None, same_lim=True, transpose_model=False,
